@@ -138,10 +138,10 @@
 <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
 <script>
 const TEENIEPINGS = {
-  "C!TSS6Royal01": { name: "Heartsping", image: "assets/Heartsping.webp" },
-  "C!TSS6Royal02": { name: "Graceping", image: "assets/Graceping.webp" },
-  "C!TSS6Royal03": { name: "Claireping", image: "assets/Claireping.webp" },
-  "C!TSS6Royal04": { name: "Bonnyping", image: "assets/Bonnyping.webp" }
+  "C!TSS6Royal01": { name: "Heartsping", image: "Heartsping.webp" },
+  "C!TSS6Royal02": { name: "Graceping", image: "Graceping.webp" },
+  "C!TSS6Royal03": { name: "Claireping", image: "Claireping.webp" },
+  "C!TSS6Royal04": { name: "Bonnyping", image: "Bonnyping.webp" }
 };
 
 const cameraFeed = document.getElementById('cameraFeed');
@@ -200,7 +200,7 @@ function scanQRCode() {
       }, 5000);
 
     } else {
-      teeniepingImage.src = 'assets/Unknown.png';
+      teeniepingImage.src = 'unknown.png';
       teeniepingName.textContent = "Unknown Teenieping";
       teeniepingCard.classList.add('show');
 
@@ -231,3 +231,4 @@ startCamera();
 </script>
 </body>
 </html>
+
