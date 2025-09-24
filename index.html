@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Star Heart Magic Catcher</title>
+<style>
+  :root {
+    --compact-bg: linear-gradient(180deg,#cfcaf5,#e7dffb);
+    --gold:#f2c94c;
+    --shadow: 0 8px 24px rgba(67,12,72,0.12);
+  }
+  body {
+    margin:0;
+    font-family:Inter, sans-serif;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    height:100vh;
+    background:#f7eefd;
+  }
+  .compact-wrap {
+    position:relative;
+    width:420px;
+  }
+  .compact {
+    width:420px;
+    height:420px;
+    border-radius:50%;
+    background:var(--compact-bg);
+    box-shadow:var(--shadow);
+    position:relative;
+    padding:22px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+  }
+  .crest {
+    position:absolute;
+    top:-24px;
+    left:50%;
+    transform:translateX(-50%);
+    width:92px;
+    height:92px;
+    background:var(--gold);
+    border-radius:18px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-weight:700;
+    color:#6b3b00;
+    font-size:36px;
+    box-shadow:0 8px 18px rgba(0,0,0,0.12);
+  }
+  .screen-frame {
+    width:320px;
+    height:220px;
+    border-radius:10px;
+    border:8px solid rgba(255,255,255,0.9);
+    box-sizing:border-box;
+    overflow:hidden;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    position:relative;
+    background:#000;
+  }
+  video {
+    width:100%;
+    height:100%;
+    object-fit:cover;
+  }
+  .teenieping-card {
+    position:absolute;
+    inset:0;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:6px;
+    background: rgba(0,0,0,0.3);
+    opacity:0;
+    transition: all 0.4s ease;
+  }
+  .teenieping-card.show {
+    opacity:1;
+  }
+  .teenieping-card img {
+    max-width:86%;
+    max-height:86%;
+    border-radius:8px;
+    box-shadow:0 10px 30px rgba(50,10,80,0.15);
+  }
+  .teenieping-name {
+    background: linear-gradient(180deg,#ffffff44,#ffffff11);
+    padding:6px 12px;
+    border-radius:12px;
+    font-weight:700;
+    color:#3b0050;
+    backdrop-filter: blur(6px);
+  }
+  .jewel {
+    position:absolute;
+    bottom:18px;
+    left:50%;
+    transform:translateX(-50%);
+    width:80px;
+    height:52px;
+    background: radial-gradient(circle at 40% 20%,#ff9fd6,#ff69b4);
+    border-radius:18px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-weight:700;
+    color:white;
+    cursor:pointer;
+    user-select:none;
+  }
+</style>
+</head>
+<body>
+<div class="compact-wrap">
+  <div class="compact">
+    <div class="crest">★</div>
+    <div class="screen-frame" id="screenFrame">
+      <video id="cameraFeed" autoplay muted playsinline></video>
+      <div class="teenieping-card" id="teeniepingCard">
+        <img id="teeniepingImage" src="" alt="Teenieping">
+        <div class="teenieping-name" id="teeniepingName">—</div>
+      </div>
+    </div>
+    <div class="jewel" id="detectBtn">❤</div>
+  </div>
+</div>
+
+<!-- jsQR library -->
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+<script>
+const TEENIEPINGS = {
+  "C!TSS6Royal01": { name: "Heartsping", image: "assets/Heartsping.webp" },
+  "C!TSS6Royal02": { name: "Graceping", image: "assets/Graceping.webp" },
+  "C!TSS6Royal03": { name: "Claireping", image: "assets/Claireping.webp" },
+  "C!TSS6Royal04": { name: "Bonnyping", image: "assets/Bonnyping.webp" }
+};
+
+const cameraFeed = document.getElementById('cameraFeed');
+const teeniepingCard = document.getElementById('teeniepingCard');
+const teeniepingImage = document.getElementById('teeniepingImage');
+const teeniepingName = document.getElementById('teeniepingName');
+const detectBtn = document.getElementById('detectBtn');
+
+let videoStream = null;
+
+// start camera feed
+async function startCamera() {
+  try {
+    // detect if mobile
+    const isMobile = /Mobi|Android/i.test(navigator.userAgent);
+
+    // choose facingMode based on device
+    const constraints = {
+      video: {
+        facingMode: isMobile ? "environment" : "user" // back camera for mobile, front for desktop
+      }
+    };
+
+    videoStream = await navigator.mediaDevices.getUserMedia(constraints);
+    cameraFeed.srcObject = videoStream;
+
+  } catch(err) {
+    console.error("Camera failed:", err);
+  }
+}
+
+// scan a single frame for QR code
+function scanQRCode() {
+  if (!cameraFeed.videoWidth || !cameraFeed.videoHeight) return;
+
+  const canvas = document.createElement('canvas');
+  canvas.width = cameraFeed.videoWidth;
+  canvas.height = cameraFeed.videoHeight;
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(cameraFeed, 0, 0, canvas.width, canvas.height);
+  const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  const code = jsQR(imageData.data, imageData.width, imageData.height);
+
+  if (code) {
+    const scanned = code.data.trim().toUpperCase();
+    if (TEENIEPINGS[scanned]) {
+      const t = TEENIEPINGS[scanned];
+      teeniepingImage.src = t.image;
+      teeniepingName.textContent = t.name;
+      teeniepingCard.classList.add('show');
+
+      // hide after 5 seconds
+      setTimeout(() => {
+        teeniepingCard.classList.remove('show');
+        teeniepingCard.classList.add('hide');
+      }, 5000);
+
+    } else {
+      teeniepingImage.src = 'assets/Unknown.png';
+      teeniepingName.textContent = "Unknown Teenieping";
+      teeniepingCard.classList.add('show');
+
+      // hide after 3 seconds
+      setTimeout(() => {
+        teeniepingCard.classList.remove('show');
+        teeniepingCard.classList.add('hide');
+      }, 3000);
+    }
+  } else {
+    console.log("No QR code detected in this frame.");
+    teeniepingName.textContent = "No teenieping scanned";
+    teeniepingCard.classList.add('show');
+
+    // hide after 3 seconds
+    setTimeout(() => {
+      teeniepingCard.classList.remove('show');
+      teeniepingCard.classList.add('hide');
+    }, 3000);
+  }
+}
+
+
+// heart button triggers scan
+detectBtn.addEventListener('click', scanQRCode);
+
+startCamera();
+</script>
+</body>
+</html>
