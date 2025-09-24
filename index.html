@@ -81,10 +81,16 @@
     gap:6px;
     background: rgba(0,0,0,0.3);
     opacity:0;
-    transition: all 0.4s ease;
+    transition: opacity 0.6s ease;
+    pointer-events:none;
   }
   .teenieping-card.show {
     opacity:1;
+    pointer-events:auto;
+  }
+  .teenieping-card.hide {
+    opacity:0;
+    pointer-events:none;
   }
   .teenieping-card img {
     max-width:86%;
@@ -155,19 +161,12 @@ let videoStream = null;
 // start camera feed
 async function startCamera() {
   try {
-    // detect if mobile
     const isMobile = /Mobi|Android/i.test(navigator.userAgent);
-
-    // choose facingMode based on device
     const constraints = {
-      video: {
-        facingMode: isMobile ? "environment" : "user" // back camera for mobile, front for desktop
-      }
+      video: { facingMode: isMobile ? "environment" : "user" }
     };
-
     videoStream = await navigator.mediaDevices.getUserMedia(constraints);
     cameraFeed.srcObject = videoStream;
-
   } catch(err) {
     console.error("Camera failed:", err);
   }
@@ -186,14 +185,16 @@ function scanQRCode() {
   const code = jsQR(imageData.data, imageData.width, imageData.height);
 
   if (code) {
-    const scanned = code.data.trim().toUpperCase();
+    const scanned = code.data.trim();
+    console.log("Scanned QR:", scanned);
+
     if (TEENIEPINGS[scanned]) {
       const t = TEENIEPINGS[scanned];
       teeniepingImage.src = t.image;
       teeniepingName.textContent = t.name;
+      teeniepingCard.classList.remove('hide');
       teeniepingCard.classList.add('show');
 
-      // hide after 5 seconds
       setTimeout(() => {
         teeniepingCard.classList.remove('show');
         teeniepingCard.classList.add('hide');
@@ -202,9 +203,9 @@ function scanQRCode() {
     } else {
       teeniepingImage.src = 'unknown.png';
       teeniepingName.textContent = "Unknown Teenieping";
+      teeniepingCard.classList.remove('hide');
       teeniepingCard.classList.add('show');
 
-      // hide after 3 seconds
       setTimeout(() => {
         teeniepingCard.classList.remove('show');
         teeniepingCard.classList.add('hide');
@@ -214,9 +215,9 @@ function scanQRCode() {
     console.log("No QR code detected in this frame.");
     teeniepingName.textContent = "No teenieping scanned";
     teeniepingImage.src = 'nothing.png';
+    teeniepingCard.classList.remove('hide');
     teeniepingCard.classList.add('show');
 
-    // hide after 3 seconds
     setTimeout(() => {
       teeniepingCard.classList.remove('show');
       teeniepingCard.classList.add('hide');
@@ -224,12 +225,11 @@ function scanQRCode() {
   }
 }
 
-
 // heart button triggers scan
 detectBtn.addEventListener('click', scanQRCode);
 
+// start camera on load
 startCamera();
 </script>
 </body>
 </html>
-
